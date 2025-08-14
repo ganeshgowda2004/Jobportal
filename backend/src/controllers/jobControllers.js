@@ -8,8 +8,8 @@ exports.createJob = async (req, res) => {
         return res.status(400).json({ errors: errors.array() });
     }
     try {
-        const { title, description, company, location } = req.body;
-        const newJob = new Job({ title, description, company, location, postedBy: req.user.id });
+        const { title, description, company, location, jobType } = req.body;
+        const newJob = new Job({ title, description, company, location, jobType, postedBy: req.user.id });
         await newJob.save();
         res.status(201).json(newJob);
     } catch (err) {
@@ -19,7 +19,10 @@ exports.createJob = async (req, res) => {
 
 exports.getJobs = async (req, res) => {
     try {
-        const jobs = await Job.find().populate('postedBy', 'username');
+        const { jobType } = req.query;
+        const filter = {};
+        if (jobType) filter.jobType = jobType;
+        const jobs = await Job.find(filter).populate('postedBy', 'username');
         res.json(jobs);
     } catch (err) {
         res.status(500).json({ message: 'Server error' });
@@ -111,6 +114,61 @@ exports.updateApplicationStatus = async (req, res) => {
         application.status = status;
         await application.save();
         res.json({ message: 'Status updated', status: application.status });
+    } catch (err) {
+        res.status(500).json({ message: 'Server error' });
+    }
+};
+
+exports.getMyApplications = async (req, res) => {
+    try {
+        const { status } = req.query;
+        const filter = { applicant: req.user.id };
+        if (status) filter.status = status;
+        const applications = await Application.find(filter)
+            .populate('job', 'title company location jobType')
+            .sort({ createdAt: -1 });
+        res.json(applications.map(a => ({
+            id: a._id,
+            job: a.job,
+            resumeUrl: a.resumeUrl,
+            coverLetter: a.coverLetter,
+            status: a.status,
+            appliedAt: a.appliedAt,
+        })));
+    } catch (err) {
+        res.status(500).json({ message: 'Server error' });
+    }
+};
+
+exports.getRecruiterApplications = async (req, res) => {
+    try {
+        const { jobType, status } = req.query;
+        // Find jobs posted by recruiter, optionally filtered by jobType
+        const jobsFilter = { postedBy: req.user.id };
+        if (jobType) jobsFilter.jobType = jobType;
+        const jobs = await Job.find(jobsFilter).select('_id');
+        const jobIds = jobs.map(j => j._id);
+
+        const appFilter = { job: { $in: jobIds } };
+        if (status) appFilter.status = status;
+
+        const applications = await Application.find(appFilter)
+            .populate('applicant', 'username email')
+            .populate('job', 'title company location jobType')
+            .sort({ createdAt: -1 });
+
+        res.json(applications.map(a => ({
+            id: a._id,
+            applicant: {
+                username: a.applicant?.username,
+                email: a.applicant?.email,
+            },
+            job: a.job,
+            resumeUrl: a.resumeUrl,
+            coverLetter: a.coverLetter,
+            status: a.status,
+            appliedAt: a.appliedAt,
+        })));
     } catch (err) {
         res.status(500).json({ message: 'Server error' });
     }
