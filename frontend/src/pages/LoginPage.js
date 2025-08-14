@@ -13,8 +13,10 @@ export default function LoginPage() {
     e.preventDefault();
     setLoading(true);
     try {
-      await login({ username, password });
-      navigate('/');
+      const role = await login({ username, password });
+      if (role === 'recruiter') navigate('/recruiter');
+      else if (role === 'applicant') navigate('/applications');
+      else navigate('/');
     } finally {
       setLoading(false);
     }

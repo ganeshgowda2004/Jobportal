@@ -11,23 +11,24 @@ export default function JobsPage() {
   const [page, setPage] = useState(1);
   const pageSize = 6;
 
+  const fetchJobs = async (jt) => {
+    setLoading(true);
+    const { data } = await getJobs(jt ? { jobType: jt } : {});
+    setJobs(data);
+    setLoading(false);
+  };
+
   useEffect(() => {
-    (async () => {
-      setLoading(true);
-      const { data } = await getJobs();
-      setJobs(data);
-      setLoading(false);
-    })();
+    fetchJobs('');
   }, []);
 
   const filtered = useMemo(() => {
     const base = jobs.filter((j) =>
       (!query || j.title.toLowerCase().includes(query.toLowerCase()) || j.company.toLowerCase().includes(query.toLowerCase())) &&
-      (!location || j.location.toLowerCase().includes(location.toLowerCase())) &&
-      (!jobType || j.description.toLowerCase().includes(jobType.toLowerCase()))
+      (!location || j.location.toLowerCase().includes(location.toLowerCase()))
     );
     return base;
-  }, [jobs, query, location, jobType]);
+  }, [jobs, query, location]);
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize));
   const pageItems = useMemo(() => {
@@ -51,9 +52,11 @@ export default function JobsPage() {
           <option>Full-time</option>
           <option>Part-time</option>
           <option>Contract</option>
-          <option>Remote</option>
+          <option>Internship</option>
+          <option>Temporary</option>
+          <option>Freelance</option>
         </select>
-        <button onClick={() => {}} className="bg-brand-600 text-white rounded-md px-4 py-2">Filter</button>
+        <button onClick={() => fetchJobs(jobType)} className="bg-brand-600 text-white rounded-md px-4 py-2">Filter</button>
       </div>
 
       {loading ? (

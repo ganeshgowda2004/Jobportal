@@ -11,6 +11,9 @@ export default function JobCard({ job }) {
         </div>
         <span className="text-xs text-gray-500">{new Date(job.createdAt).toLocaleDateString()}</span>
       </div>
+      <div className="mt-2 flex items-center gap-2">
+        {job.jobType && <span className="text-xs px-2 py-0.5 rounded-full bg-brand-50 text-brand-700 border border-brand-100">{job.jobType}</span>}
+      </div>
       <p className="mt-2 text-sm text-gray-700 max-h-20 overflow-hidden">{job.description}</p>
       <div className="mt-4 flex justify-between items-center">
         <div className="text-xs text-gray-500">Posted by {job.postedBy?.username || 'Unknown'}</div>
