@@ -15,9 +15,10 @@
 
 ## Jobs
 - GET `/api/jobs` (public)
+  - Query: `?jobType=Full-time|Part-time|Contract|Internship|Temporary|Freelance`
 - POST `/api/jobs` (recruiter)
   - headers: `Authorization`
-  - body JSON: `{ title, description, company, location }`
+  - body JSON: `{ title, description, company, location, jobType? }`
 - POST `/api/jobs/:jobId/apply` (applicant)
   - headers: `Authorization`
   - multipart/form-data:
@@ -25,6 +26,12 @@
     - `coverLetter` (string, optional)
 - GET `/api/jobs/recruiter/applications/:jobId` (recruiter; must own job)
   - headers: `Authorization`
+- GET `/api/jobs/recruiter/applications` (recruiter)
+  - headers: `Authorization`
+  - Query: `?jobType=...&status=Pending|Reviewed|Accepted|Rejected`
+- GET `/api/jobs/applications/me` (applicant)
+  - headers: `Authorization`
+  - Query: `?status=Pending|Reviewed|Accepted|Rejected`
 - PATCH `/api/jobs/applications/:applicationId/status` (recruiter; must own job)
   - headers: `Authorization`
   - body JSON: `{ status: 'Pending'|'Reviewed'|'Accepted'|'Rejected' }`
@@ -72,6 +79,17 @@ curl -sX PATCH http://localhost:5000/api/jobs/applications/<applicationId>/statu
   -H "Authorization: Bearer $TOKEN" \
   -H 'Content-Type: application/json' \
   -d '{"status":"Reviewed"}'
+
+# List jobs filtered by jobType
+curl -s 'http://localhost:5000/api/jobs?jobType=Full-time'
+
+# Applicant: view my applications (optionally filter by status)
+curl -s 'http://localhost:5000/api/jobs/applications/me?status=Pending' \
+  -H "Authorization: Bearer $ATOKEN"
+
+# Recruiter: view all applications across my jobs (filter by jobType/status)
+curl -s 'http://localhost:5000/api/jobs/recruiter/applications?jobType=Full-time&status=Reviewed' \
+  -H "Authorization: Bearer $TOKEN"
 ```
 
 ## Environment

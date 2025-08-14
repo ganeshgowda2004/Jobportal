@@ -3,7 +3,7 @@ import { Link, NavLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 
 export default function Header() {
-  const { isAuthenticated, logout } = useAuth();
+  const { isAuthenticated, logout, role } = useAuth();
   const navigate = useNavigate();
 
   const linkClass = ({ isActive }) =>
@@ -22,8 +22,8 @@ export default function Header() {
             <NavLink to="/jobs" className={linkClass}>Jobs</NavLink>
             {isAuthenticated && (
               <>
-                <NavLink to="/recruiter" className={linkClass}>Recruiter</NavLink>
-                <NavLink to="/applications" className={linkClass}>Applications</NavLink>
+                {role === 'recruiter' && <NavLink to="/recruiter" className={linkClass}>Recruiter</NavLink>}
+                {role === 'applicant' && <NavLink to="/applications" className={linkClass}>Applications</NavLink>}
               </>
             )}
           </nav>
